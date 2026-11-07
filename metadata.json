@@ -1,0 +1,6 @@
+{
+  "name": "DealGuard",
+  "description": "Real-estate chat marketplace powered by Nexconn Chat SDK and Guardian Copilot AI for live Trust Shield scam flagging and Hot-Lead proactive escalation briefings.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

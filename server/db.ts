@@ -1,0 +1,301 @@
+import fs from 'fs';
+import path from 'path';
+import { User, Listing, Message, Escalation } from './types.js';
+
+interface DatabaseState {
+  users: User[];
+  listings: Listing[];
+  messages: Message[];
+  escalations: Escalation[];
+}
+
+const DB_FILE = path.resolve(process.cwd(), 'dev.db.json');
+
+class Database {
+  private state: DatabaseState = {
+    users: [],
+    listings: [],
+    messages: [],
+    escalations: [],
+  };
+
+  constructor() {
+    this.load();
+  }
+
+  private load() {
+    try {
+      if (fs.existsSync(DB_FILE)) {
+        const data = fs.readFileSync(DB_FILE, 'utf-8');
+        this.state = JSON.parse(data);
+      } else {
+        this.resetToDefaults();
+      }
+    } catch (err) {
+      console.warn('Error reading db file, initializing defaults:', err);
+      this.resetToDefaults();
+    }
+  }
+
+  public save() {
+    try {
+      fs.writeFileSync(DB_FILE, JSON.stringify(this.state, null, 2), 'utf-8');
+    } catch (err) {
+      console.error('Error writing db file:', err);
+    }
+  }
+
+  public resetToDefaults() {
+    this.state = {
+      users: [
+        {
+          id: 'buyer_alex',
+          name: 'Alex Chen',
+          role: 'buyer',
+          avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80',
+          title: 'Verified Homebuyer',
+          phone: '+1 (415) 555-0182',
+          statusText: 'Pre-approved buyer looking in Marina / Waterfront',
+        },
+        {
+          id: 'seller_priya',
+          name: 'Priya Patel',
+          role: 'seller',
+          avatar: 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=150&auto=format&fit=crop&q=80',
+          title: 'Managing Broker',
+          agency: 'Bayfront Realty Group',
+          rating: 4.9,
+          phone: '+1 (415) 555-0149',
+          statusText: 'Online · Listing Agent for Horizon Residences',
+        },
+        {
+          id: 'seller_marcus',
+          name: 'Marcus Vance',
+          role: 'seller',
+          avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&auto=format&fit=crop&q=80',
+          title: 'Owner & Architect',
+          agency: 'Urban Loft Collective',
+          rating: 4.8,
+          phone: '+1 (415) 555-0199',
+          statusText: 'Direct property owner',
+        },
+        {
+          id: 'seller_elena',
+          name: 'Elena Rostova',
+          role: 'seller',
+          avatar: 'https://images.unsplash.com/photo-1580489944761-15a19d654956?w=150&auto=format&fit=crop&q=80',
+          title: 'Principal Broker',
+          agency: 'Highland Estates',
+          rating: 5.0,
+          phone: '+1 (415) 555-0177',
+          statusText: 'Specializing in Peninsula estates',
+        },
+        {
+          id: 'agent_sarah',
+          name: 'Sarah Jenkins',
+          role: 'agent',
+          avatar: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=150&auto=format&fit=crop&q=80',
+          title: 'Senior Broker Lead (Guardian Escalations)',
+          agency: 'DealGuard Priority Team',
+          rating: 4.98,
+          phone: '+1 (415) 555-0100',
+          statusText: 'Standing by for hot lead rescue & escrow intervention',
+        },
+      ],
+      listings: [
+        {
+          id: 'listing_1',
+          title: 'The Horizon Marina Residence',
+          price: 1280000,
+          formattedPrice: '$1,280,000',
+          locality: 'Marina Waterfront',
+          address: '420 Marina Boulevard, Unit 4B',
+          bedrooms: 2,
+          bathrooms: 2,
+          sqft: 1420,
+          propertyType: 'Condominium',
+          description: 'Sun-drenched Scandinavian-inspired waterfront residence with panoramic bay views, private balcony, chevron oak floors, and deeded garage parking.',
+          highlights: ['Panoramic Bay Views', 'Deeded Parking', 'Floor-to-Ceiling Windows', 'Low HOA ($420/mo)'],
+          image: '/src/assets/images/property_luxury_apartment_1794032403222.jpg',
+          sellerId: 'seller_priya',
+          sellerName: 'Priya Patel',
+          status: 'available',
+          verified: true,
+        },
+        {
+          id: 'listing_2',
+          title: 'Glasshouse Penthouse Suite',
+          price: 2450000,
+          formattedPrice: '$2,450,000',
+          locality: 'Downtown Financial District',
+          address: '880 Market St, Penthouse 38',
+          bedrooms: 3,
+          bathrooms: 3.5,
+          sqft: 2280,
+          propertyType: 'Penthouse',
+          description: 'Dramatic wrap-around terrace overlooking the city skyline at golden hour. Double-height ceilings, bespoke Boffi kitchen, and 24/7 concierge.',
+          highlights: ['Private Sky Terrace', '24/7 Valet & Doorman', 'Boffi Designer Kitchen', 'Wine Cellar'],
+          image: '/src/assets/images/property_modern_penthouse_1794032403502.jpg',
+          sellerId: 'seller_priya',
+          sellerName: 'Priya Patel',
+          status: 'available',
+          verified: true,
+        },
+        {
+          id: 'listing_3',
+          title: 'Cedarwood Modern Villa',
+          price: 1890000,
+          formattedPrice: '$1,890,000',
+          locality: 'Silverwood Hills',
+          address: '1540 Crestview Lane',
+          bedrooms: 4,
+          bathrooms: 3.5,
+          sqft: 3100,
+          propertyType: 'Single Family Villa',
+          description: 'Contemporary architectural sanctuary with seamless indoor-outdoor living, manicured grounds, infinity pool, and integrated smart home automation.',
+          highlights: ['Infinity Pool', 'Zero-Carbon Solar Array', 'EV Charging Garage', 'Private Garden'],
+          image: '/src/assets/images/property_suburban_villa_1794032404189.jpg',
+          sellerId: 'seller_elena',
+          sellerName: 'Elena Rostova',
+          status: 'available',
+          verified: true,
+        },
+        {
+          id: 'listing_4',
+          title: 'Heritage Warehouse Loft',
+          price: 980000,
+          formattedPrice: '$980,000',
+          locality: 'Arts & Brewery District',
+          address: '710 Industrial Way, Loft 204',
+          bedrooms: 1,
+          bathrooms: 1.5,
+          sqft: 1250,
+          propertyType: 'Live/Work Loft',
+          description: 'Authentic 1920s brick timber loft with 14-foot timber beamed ceilings, polished concrete floors, custom industrial steel mullions, and freight elevator access.',
+          highlights: ['Exposed Historic Brick', '14ft Ceilings', 'Zoned Live/Work', 'Custom Steelwork'],
+          image: '/src/assets/images/property_urban_loft_1794032403759.jpg',
+          sellerId: 'seller_marcus',
+          sellerName: 'Marcus Vance',
+          status: 'available',
+          verified: true,
+        },
+      ],
+      messages: [
+        {
+          id: 'msg_seed_1',
+          channelId: 'channel_alex_priya',
+          senderId: 'buyer_alex',
+          senderName: 'Alex Chen',
+          senderRole: 'buyer',
+          content: 'Hi Priya, I saw the Marina Boulevard 2-bed listing. Is it still available for a viewing this Saturday?',
+          timestamp: Date.now() - 3600000 * 3,
+          classification: {
+            trust_flag: false,
+            trust_reason: null,
+            lead_score: 65,
+            risk_of_loss: 15,
+          },
+        },
+        {
+          id: 'msg_seed_2',
+          channelId: 'channel_alex_priya',
+          senderId: 'seller_priya',
+          senderName: 'Priya Patel',
+          senderRole: 'seller',
+          content: 'Hello Alex! Yes, absolutely. Saturday at 11:00 AM or 2:00 PM are both open. The unit gets wonderful south-west sunlight in the afternoon.',
+          timestamp: Date.now() - 3600000 * 2,
+        },
+        {
+          id: 'msg_seed_3',
+          channelId: 'channel_alex_priya',
+          senderId: 'buyer_alex',
+          senderName: 'Alex Chen',
+          senderRole: 'buyer',
+          content: '2:00 PM works well for me. Does the HOA allow pets and is the parking space deeded or assigned?',
+          timestamp: Date.now() - 3600000 * 1,
+          classification: {
+            trust_flag: false,
+            trust_reason: null,
+            lead_score: 72,
+            risk_of_loss: 18,
+          },
+        },
+        {
+          id: 'msg_seed_4',
+          channelId: 'channel_alex_priya',
+          senderId: 'seller_priya',
+          senderName: 'Priya Patel',
+          senderRole: 'seller',
+          content: 'Deeded parking space #14 directly next to the elevator! And yes, pets under 40 lbs are welcome.',
+          timestamp: Date.now() - 1800000,
+        },
+      ],
+      escalations: [],
+    };
+    this.save();
+  }
+
+  // Getters
+  public getUsers(): User[] {
+    return this.state.users;
+  }
+
+  public getUser(id: string): User | undefined {
+    return this.state.users.find((u) => u.id === id);
+  }
+
+  public getListings(): Listing[] {
+    return this.state.listings;
+  }
+
+  public getListing(id: string): Listing | undefined {
+    return this.state.listings.find((l) => l.id === id);
+  }
+
+  public getMessages(channelId: string): Message[] {
+    return this.state.messages.filter((m) => m.channelId === channelId);
+  }
+
+  public addMessage(msg: Message): Message {
+    this.state.messages.push(msg);
+    this.save();
+    return msg;
+  }
+
+  public updateMessage(id: string, updates: Partial<Message>): Message | undefined {
+    const msg = this.state.messages.find((m) => m.id === id);
+    if (msg) {
+      Object.assign(msg, updates);
+      this.save();
+    }
+    return msg;
+  }
+
+  public getEscalations(): Escalation[] {
+    return [...this.state.escalations].sort((a, b) => b.timestamp - a.timestamp);
+  }
+
+  public addEscalation(esc: Escalation): Escalation {
+    // Avoid duplicate escalations for same channel in short period
+    const existingIdx = this.state.escalations.findIndex((e) => e.channelId === esc.channelId && e.status === 'active');
+    if (existingIdx >= 0) {
+      this.state.escalations[existingIdx] = esc;
+    } else {
+      this.state.escalations.unshift(esc);
+    }
+    this.save();
+    return esc;
+  }
+
+  public claimEscalation(id: string, claimedBy: string): Escalation | undefined {
+    const esc = this.state.escalations.find((e) => e.id === id);
+    if (esc) {
+      esc.status = 'claimed';
+      esc.claimedBy = claimedBy;
+      this.save();
+    }
+    return esc;
+  }
+}
+
+export const db = new Database();
